@@ -30,8 +30,42 @@ namespace OneMessenger.Server
 			ConnectedClients.TryAdd(username, newClient);
 			return 0;
 		}
+        public int Login(string username, string password)
+        {
 
-		public void SendMessageToAll(string username,string message)
+            foreach (var client in ConnectedClients)
+            {
+                if (client.Key.ToLower() == username.ToLower())
+                {
+                    return 1;
+                }
+            }
+            var establishedUserConnection = OperationContext.Current.GetCallbackChannel<IClient>();
+            ConnectedClient newClient = new ConnectedClient();
+            newClient.Connection = establishedUserConnection;
+            newClient.Username = username;
+            ConnectedClients.TryAdd(username, newClient);
+            return 0;
+        }
+        public int Registration(string username, string password)
+        {
+
+            foreach (var client in ConnectedClients)
+            {
+                if (client.Key.ToLower() == username.ToLower())
+                {
+                    return 1;
+                }
+            }
+            var establishedUserConnection = OperationContext.Current.GetCallbackChannel<IClient>();
+            ConnectedClient newClient = new ConnectedClient();
+            newClient.Connection = establishedUserConnection;
+            newClient.Username = username;
+            ConnectedClients.TryAdd(username, newClient);
+            return 0;
+        }
+
+        public void SendMessageToAll(string username,string message)
 		{
 			foreach (var client in ConnectedClients)
 			{
@@ -41,5 +75,16 @@ namespace OneMessenger.Server
 				}
 			}
 		}
-	}
+
+        public void SendMessageToUser(string reciever, string sender, string message)
+        {
+            foreach (var client in ConnectedClients)
+            {
+                if (client.Key.ToLower() == reciever.ToLower())
+                {
+                    client.Value.Connection.GetMessage(sender, message);
+                }
+            }
+        }
+    }
 }
