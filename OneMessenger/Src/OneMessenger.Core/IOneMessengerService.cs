@@ -1,4 +1,5 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 
 namespace OneMessenger.Core
 {
@@ -9,10 +10,10 @@ namespace OneMessenger.Core
 		[OperationContract]
 		int Login(string username);
 
-
 		[OperationContract]
 		void SendMessageToAll(string username,string message);
-	}
+		[OperationContract]
+		List<string> GetConnectedUsernames(string username);
 
-
+    }
 }

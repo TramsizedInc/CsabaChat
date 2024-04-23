@@ -1,4 +1,4 @@
-﻿using MySqlConnector;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using SysQL = MySqlConnector;
 
 namespace OneMessenger.Core
 {
-    public class DataBaseUtils
+    internal class DataBaseUtils
     {
         public class ConnectSQL
         {
@@ -55,7 +55,7 @@ namespace OneMessenger.Core
 
             private SysQL::MySqlConnection _InternalConnect() => new SysQL::MySqlConnection($"Server={Location};User={Username};Password={Password};Database={DataBase};");
         }
-        public static List<object> GetData(SysQL::MySqlCommand cmd)
+        static List<object> GetData(SysQL::MySqlCommand cmd)
         {
             var datas = new List<object>();
             using (var reader = cmd.ExecuteReader())
@@ -68,7 +68,7 @@ namespace OneMessenger.Core
 
             return datas;
         }
-        public static List<object> GetDatas(SysQL::MySqlCommand cmd)
+        static List<object> GetDatas(SysQL::MySqlCommand cmd)
         {
             var datas = new List<object>();
             using (var reader = cmd.ExecuteReader())

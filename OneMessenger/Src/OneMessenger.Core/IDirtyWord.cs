@@ -10,7 +10,7 @@ namespace OneMessenger.Core
     public interface IDirtyWord
     {
         XDocument GetXML();
-        bool IsDirtyWord();
+        bool IsDirtyWord(string word);
         string GetSafeWord(string input);
     }
 }

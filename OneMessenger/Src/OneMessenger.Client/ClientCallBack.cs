@@ -1,6 +1,7 @@
 ﻿using System.ServiceModel;
 using System.Windows;
 using OneMessenger.Core;
+using static OneMessenger.Core.DataBaseUtils;
 
 namespace OneMessenger.Client
 {

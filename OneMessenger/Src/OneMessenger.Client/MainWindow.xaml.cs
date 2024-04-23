@@ -16,6 +16,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using OneMessenger.Core;
+using OneMessenger.Server;
+
 
 namespace OneMessenger.Client
 {
@@ -43,6 +45,7 @@ namespace OneMessenger.Client
 
 			TextDisplay.IsReadOnly = true;
 			MessageTextBox.Focus();
+			ConnectedUsers.IsReadOnly = true;
 
 		}
 
@@ -75,7 +78,17 @@ namespace OneMessenger.Client
 				LblWelcome.Content = $"Welcome, {UserNameTextBox.Text}";
 				UserNameTextBox.IsEnabled = false;
 				btnlogin.IsEnabled = false;
+				_server.GetConnectedUsernames(UserNameTextBox.Text).ForEach(x => ConnectedUsers.Text += x + "\n");
 			}
+        }
+
+		private void CensorDirtyWords(string message){
+			
 		}
-	}
+
+        private void btnregister_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+    }
 }
