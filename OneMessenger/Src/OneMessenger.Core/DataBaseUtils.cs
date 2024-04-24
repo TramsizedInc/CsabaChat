@@ -55,30 +55,26 @@ namespace OneMessenger.Core
 
             private SysQL::MySqlConnection _InternalConnect() => new SysQL::MySqlConnection($"Server={Location};User={Username};Password={Password};Database={DataBase};");
         }
-        public static List<object> GetData(SysQL::MySqlCommand cmd)
-        {
+        public static List<object> GetData(SysQL::MySqlCommand cmd){
+            cmd.Connection.Open();
             var datas = new List<object>();
-            using (var reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
-                {
+            using (var reader = cmd.ExecuteReader()){
+                while (reader.Read()){
                     datas.Add(reader.GetValue(0));
                 }
             }
-
+            cmd.Connection.Close();
             return datas;
         }
-        public static List<object> GetDatas(SysQL::MySqlCommand cmd)
-        {
+        public static List<object> GetDatas(SysQL::MySqlCommand cmd){
+            cmd.Connection.Open();
             var datas = new List<object>();
-            using (var reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
-                {
+            using (var reader = cmd.ExecuteReader()){
+                while (reader.Read()){
                     datas.Add(reader.GetValue(0));
                 }
             }
-
+            cmd.Connection.Close();
             return datas;
         }
     }

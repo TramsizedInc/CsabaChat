@@ -8,9 +8,12 @@ namespace OneMessenger.Core
 	public interface IOneMessengerService
 	{
 		[OperationContract]
-		int Login(string username);
+		int Login(string username, string hashedpassword);
 
-		[OperationContract]
+        [OperationContract]
+        int Registration(string username, string password);
+
+        [OperationContract]
 		void SendMessageToAll(string username,string message);
 		[OperationContract]
 		List<string> GetConnectedUsernames(string username);

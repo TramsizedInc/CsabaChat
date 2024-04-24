@@ -11,6 +11,7 @@ using static OneMessenger.Core.DataBaseUtils;
 using SysQL = MySqlConnector;
 using static OneMessenger.Core.Hashish;
 using System.ServiceModel.Channels;
+using System.Runtime.CompilerServices;
 
 namespace OneMessenger.Server
 {
@@ -43,7 +44,8 @@ namespace OneMessenger.Server
 		}
         public int Login(string username, string password)
         {
-            if(!this.IsUserExistant(username)){
+
+            if (!this.IsUserExistant(username)){
                 // "needs to register";
                 return 1;
             }
@@ -66,16 +68,22 @@ namespace OneMessenger.Server
         }
         public int Registration(string username, string password)
         {
-            if (this.IsUsernameValid(username))
+            //this.db.Connection.Open();
+            if (!this.IsUsernameValid(username))
                 return 1; // invalid username
 
             if (this.IsUserExistant(username))
             {
                 // "needs to login";
-                return 1;
+                return 2;
             }
             var hashed_password = hashish.HashPassword(password);
             this.CreateUser(username, hashed_password);
+            var establishedUserConnection = OperationContext.Current.GetCallbackChannel<IClient>();
+            ConnectedClient newClient = new ConnectedClient();
+            newClient.Connection = establishedUserConnection;
+            newClient.Username = username;
+            ConnectedClients.TryAdd(username, newClient);
             return 0;
         }
 
@@ -107,24 +115,30 @@ namespace OneMessenger.Server
         }
         private bool IsUserExistant(string username)
         {
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.username FROM csaba WHERE users.username={username}",db.Connection);
+            //this.db.Connection.Open();
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.username FROM users WHERE users.username='{username}'",db.Connection);
             var user = GetData(command);
+            //this.db.Connection.Close();
             return user.Count() > 0;
         }
         private string RetriveHashedPassword(string username)
         {
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.password FROM csaba WHERE users.username={username}", db.Connection);
+            //this.db.Connection.Open();
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.password FROM users WHERE users.username='{username}'", db.Connection);
             var user = GetData(command);
 
             if (user.Count != 1)
                 throw new Exception("more than one password is available for user" + username);
-
+            
+            //this.db.Connection.Close();
             return user.First().ToString();
         }
         private void CreateUser(string username, string hashed_password)
         {
+            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into users (username, email, password, created_at) VALUES ('{username}', '{hashed_password}', '{username}.kavcsicsabcsi@gmail.com', '{DateTime.Now}')", db.Connection);
             command.ExecuteNonQuery();
+            this.db.Connection.Close();
         }
         private void MessageLogger(string message, string sender)
         {
@@ -134,21 +148,28 @@ namespace OneMessenger.Server
                 recivers.Add(client.Key);
             }
             string reciver = string.Join(", ",recivers);
+            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
             command.ExecuteNonQuery();
+            this.db.Connection.Close();
         }
         private void MessageLogger(string message, string sender, List<string> receivers)
         {
             string reciver = string.Join(", ", receivers);
+            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
             command.ExecuteNonQuery();
+            this.db.Connection.Close();
         }
         private void MessageLogger(string message, string sender, string reciver){
+            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
             command.ExecuteNonQuery();
+            this.db.Connection.Close();
         }
         private string GetID(string username)
         {
+            //this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.id FROM csaba WHERE users.username={username}", db.Connection);
             var user = GetData(command);
             return user.First().ToString();

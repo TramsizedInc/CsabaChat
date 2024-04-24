@@ -29,35 +29,27 @@ namespace OneMessenger.Client
 		// ReSharper disable once InconsistentNaming
 		public static IOneMessengerService _server;
 
-		public MainWindow()
-		{
+		public MainWindow(){
 			InitializeComponent();
 			var channelFactory = new DuplexChannelFactory<IOneMessengerService>(new ClientCallback(), "OneMessengerServiceEndpoint");
-			try
-			{
+			try{
 				_server = channelFactory.CreateChannel();
-
 			}
-			catch (Exception e)
-			{
+			catch (Exception e){
 				MessageBox.Show(e.Message,"Sever not Runing");
 			}
 
 			TextDisplay.IsReadOnly = true;
 			MessageTextBox.Focus();
 			ConnectedUsers.IsReadOnly = true;
-
 		}
 
-		public void TakeMessage(string username,string message)
-		{
+		public void TakeMessage(string username,string message){
 			TextDisplay.Text += $"{username} : { message} \n";
 		}
 
-		private void BtnSend_Click(object sender, RoutedEventArgs e)
-		{
-			if (MessageTextBox.Text!="")
-			{
+		private void BtnSend_Click(object sender, RoutedEventArgs e){
+			if (MessageTextBox.Text!=""){
 				_server.SendMessageToAll(UserNameTextBox.Text, MessageTextBox.Text);
 				TakeMessage("You", MessageTextBox.Text);
 				MessageTextBox.Text = "";
@@ -66,7 +58,7 @@ namespace OneMessenger.Client
 
 		private void btnlogin_Click(object sender, RoutedEventArgs e)
 		{
-			var value = _server.Login(UserNameTextBox.Text);
+			var value = _server.Login(UserNameTextBox.Text, UserPassTextBox.Text);
 
 			if (value==1)
 			{
@@ -88,7 +80,24 @@ namespace OneMessenger.Client
 
         private void btnregister_Click(object sender, RoutedEventArgs e)
         {
+            var value = _server.Registration(UserNameTextBox.Text, UserPassTextBox.Text);
 
+            if (value == 1){
+                MessageBox.Show("You are already logged in");
+            }
+            if (value == 2){
+                MessageBox.Show("You are already logged in");
+            }
+            else{
+                MessageBox.Show("Successfully logged in");
+                LblWelcome.Content = $"Welcome, {UserNameTextBox.Text}";
+                UserNameTextBox.IsEnabled = false;
+                btnlogin.IsEnabled = false;
+				btnregister.IsEnabled = false;
+                UserPassTextBox.IsEnabled = false;
+
+                _server.GetConnectedUsernames(UserNameTextBox.Text).ForEach(x => ConnectedUsers.Text += x + "\n");
+            }
         }
     }
 }
