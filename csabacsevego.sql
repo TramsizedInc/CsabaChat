@@ -42,7 +42,7 @@ CREATE TABLE `friends` (
 CREATE TABLE `messages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sender_id` int(20) NOT NULL,
-  `reciever_id` int(20) NOT NULL,
+  `reciever` varchar(20) NOT NULL,
   `message` varchar(2000) COLLATE utf8_hungarian_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,

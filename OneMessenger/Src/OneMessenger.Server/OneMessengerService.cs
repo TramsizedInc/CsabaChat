@@ -136,7 +136,7 @@ namespace OneMessenger.Server
         private void CreateUser(string username, string hashed_password)
         {
             this.db.Connection.Open();
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into users (username, email, password, created_at) VALUES ('{username}', '{hashed_password}', '{username}.kavcsicsabcsi@gmail.com', '{DateTime.Now}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into users (username, email, password, created_at) VALUES ('{username}', '{username}.kavcsicsabcsi@gmail.com', '{hashed_password}', '{DateTime.Now}')", db.Connection);
             command.ExecuteNonQuery();
             this.db.Connection.Close();
         }
