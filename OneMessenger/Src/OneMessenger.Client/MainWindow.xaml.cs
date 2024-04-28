@@ -1,8 +1,8 @@
 ﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
- using System.Security.Cryptography.X509Certificates;
- using System.ServiceModel;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,16 +38,14 @@ namespace OneMessenger.Client
 			catch (Exception e){
 				MessageBox.Show(e.Message,"Sever not Runing");
 			}
-
 			TextDisplay.IsReadOnly = true;
 			MessageTextBox.Focus();
 			ConnectedUsers.IsReadOnly = true;
 		}
-
 		public void TakeMessage(string username,string message){
+			message = _server.ConnectedClients[username].Value.NeedsCensoring?this.CensorDirtyWords(message) : message;
 			TextDisplay.Text += $"{username} : { message} \n";
 		}
-
 		private void BtnSend_Click(object sender, RoutedEventArgs e){
 			if (MessageTextBox.Text!=""){
 				_server.SendMessageToAll(UserNameTextBox.Text, MessageTextBox.Text);
@@ -55,17 +53,13 @@ namespace OneMessenger.Client
 				MessageTextBox.Text = "";
 			}
 		}
-
 		private void btnlogin_Click(object sender, RoutedEventArgs e)
 		{
 			var value = _server.Login(UserNameTextBox.Text, UserPassTextBox.Text);
-
-			if (value==1)
-			{
+			if (value==1){
 				MessageBox.Show("You are already logged in");
 			}
-			else
-			{
+			else{
 				MessageBox.Show("Successfully logged in");
 				LblWelcome.Content = $"Welcome, {UserNameTextBox.Text}";
 				UserNameTextBox.IsEnabled = false;
@@ -73,9 +67,11 @@ namespace OneMessenger.Client
 				_server.GetConnectedUsernames(UserNameTextBox.Text).ForEach(x => ConnectedUsers.Text += x + "\n");
 			}
         }
-
-		private void CensorDirtyWords(string message){
-			
+		private string CensorDirtyWords(string message){
+			var dw = new DirtyWord();
+			// return dw.GetSafeWord(message);
+			message.Split(" ").ForEach(x=> dw.SetSafeWord(x));
+			return message;
 		}
 
         private void btnregister_Click(object sender, RoutedEventArgs e)

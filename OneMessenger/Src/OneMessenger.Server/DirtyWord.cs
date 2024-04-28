@@ -8,7 +8,7 @@ using OneMessenger.Core;
 
 namespace OneMessenger.Server
 {
-    internal class DirtyWord: IDirtyWord
+    public class DirtyWord: IDirtyWord
     {
         public XDocument GetXML()
         {

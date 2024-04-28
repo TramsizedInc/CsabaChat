@@ -6,5 +6,6 @@ namespace OneMessenger.Server
 	{
 		public string Username { get; set; }
 		public IClient Connection;
+		public bool NeedsCensoring { get; set; }
 	}
 }

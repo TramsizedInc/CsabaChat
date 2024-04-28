@@ -57,17 +57,22 @@ CREATE TABLE `messages` (
 --
 
 CREATE TABLE `users` (
- `id` int(20) NOT NULL AUTO_INCREMENT,
- `username` varchar(20) COLLATE utf8_hungarian_ci NOT NULL,
- `email` varchar(255) COLLATE utf8_hungarian_ci NOT NULL,
- `password` varchar(255) COLLATE utf8_hungarian_ci NOT NULL,
- `created_at` datetime DEFAULT NULL,
- `updated_at` datetime DEFAULT NULL,
- `deleted_at` datetime DEFAULT NULL,
- `active` tinyint(1) NOT NULL DEFAULT 0,
- PRIMARY KEY (`id`)
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `username` varchar(20) COLLATE utf8_hungarian_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8_hungarian_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8_hungarian_ci NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT 0,
+  `censured` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 
+CREATE TABLE `servers` (
+  `user_id` int(20) NOT NULL,
+  `server_address` VARCHAR(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 --
 -- Indexek a kiírt táblákhoz
 --
@@ -77,7 +82,8 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `friends`
   ADD PRIMARY KEY (`user_id`);
-
+ALTER TABLE `servers`
+  ADD PRIMARY KEY (`user_id`);
 --
 -- A tábla indexei `messages`
 --
