@@ -15,28 +15,9 @@ using System.Runtime.CompilerServices;
 namespace OneMessenger.Server{
 	[ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple,InstanceContextMode = InstanceContextMode.Single)]
 	public class OneMessengerService : IOneMessengerService{
-		public ConcurrentDictionary<string, ConnectedClient> ConnectedClients=new ConcurrentDictionary<string, ConnectedClient>();
+		public ConcurrentDictionary<string, OneMessenger.Core.ConnectedClient> ConnectedClients=new ConcurrentDictionary<string, OneMessenger.Core.ConnectedClient>();
         public DataBaseUtils.ConnectSQL db = new DataBaseUtils.ConnectSQL("localhost", "root", "", "csaba");
         static OneMessenger.Core.Hashish hashish = new Hashish();
-		public int Login(string username){
-            if(!this.IsUserExistant(username)){
-                // "needs to register";
-                return 1;
-            }
-			foreach (var client in ConnectedClients){
-				if (client.Key.ToLower()==username.ToLower()){
-                    // "collides with an already logged-in client"
-					return 1;
-				}
-			}
-			var establishedUserConnection = OperationContext.Current.GetCallbackChannel<IClient>();
-			ConnectedClient newClient=new ConnectedClient();
-			newClient.Connection = establishedUserConnection;
-			newClient.Username = username;
-            newClient.NeedsCensoring = false; ///
-			ConnectedClients.TryAdd(username, newClient);
-			return 0;
-		}
         public int Login(string username, string password){
             if (!this.IsUserExistant(username)){
                 // "needs to register";
@@ -51,7 +32,7 @@ namespace OneMessenger.Server{
             if (hashed_input != RetriveHashedPassword(username))
                 return 1; //password mismatch
             var establishedUserConnection = OperationContext.Current.GetCallbackChannel<IClient>();
-            ConnectedClient newClient = new ConnectedClient();
+            OneMessenger.Core.ConnectedClient newClient = new OneMessenger.Core.ConnectedClient();
             newClient.Connection = establishedUserConnection;
             newClient.Username = username;
             newClient.NeedsCensoring = this.GetCensuraInfo(newClient.Username); ///
@@ -70,7 +51,7 @@ namespace OneMessenger.Server{
             var hashed_password = hashish.HashPassword(password);
             this.CreateUser(username, hashed_password);
             var establishedUserConnection = OperationContext.Current.GetCallbackChannel<IClient>();
-            ConnectedClient newClient = new ConnectedClient();
+            OneMessenger.Core.ConnectedClient newClient = new OneMessenger.Core.ConnectedClient();
             newClient.Connection = establishedUserConnection;
             newClient.Username = username;
             newClient.NeedsCensoring = false; ///
@@ -97,33 +78,25 @@ namespace OneMessenger.Server{
             }
         }
         private bool IsUserExistant(string username){
-            //this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.username FROM users WHERE users.username='{username}'",db.Connection);
             var user = GetData(command);
-            //this.db.Connection.Close();
             return user.Count() > 0;
         }
         private string RetriveHashedPassword(string username){
-            //this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.password FROM users WHERE users.username='{username}'", db.Connection);
             var user = GetData(command);
 
             if (user.Count != 1)
                 throw new Exception("more than one password is available for user" + username);
-            //this.db.Connection.Close();
             return user.First().ToString();
         }
         private void CreateUser(string username, string hashed_password){
-            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into users (username, email, password, created_at) VALUES ('{username}', '{username}.kavcsicsabcsi@gmail.com', '{hashed_password}', '{DateTime.Now}')", db.Connection);
-            command.ExecuteNonQuery();
-            this.db.Connection.Close();
+            RunNonQuery(command);
         }
         private void SetCensura(string userid, bool switcheroo){
-            this.db.Connection.Open();
             using SysQL::MySqlCommand cmd = new SysQL::MySqlCommand($"UPDATE users SET censured = '{Convert.ToInt32(switcheroo).ToString().Last()}' WHERE users.id = '{userid}';");
-            command.ExecuteNonQuery();
-            this.db.Connection.Close();
+            RunNonQuery(cmd);
         }
         private void MessageLogger(string message, string sender){
             var recivers = new List<string>();
@@ -132,23 +105,17 @@ namespace OneMessenger.Server{
                 recivers.Add(client.Key);
             }
             string reciver = string.Join(", ",recivers);
-            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
-            command.ExecuteNonQuery();
-            this.db.Connection.Close();
+            RunNonQuery(command);
         }
         private void MessageLogger(string message, string sender, List<string> receivers){
             string reciver = string.Join(", ", receivers);
-            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
-            command.ExecuteNonQuery();
-            this.db.Connection.Close();
+            RunNonQuery(command);
         }
         private void MessageLogger(string message, string sender, string reciver){
-            this.db.Connection.Open();
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
-            command.ExecuteNonQuery();
-            this.db.Connection.Close();
+            RunNonQuery(command);
         }
         private string GetID(string username){
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.id FROM csaba WHERE users.username='{username}'", db.Connection);
@@ -173,7 +140,13 @@ namespace OneMessenger.Server{
         }
         private bool GetCensuraInfo(string username){
             using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.censured FROM csaba WHERE users.username='{username}'", db.Connection);
-            var user = GetData(command);
-            return user.First().ToString();
-        }}
+            var censura = GetData(command);
+            return censura.First().ToString().Contains("1");
+        }
+        public void UploadImage(string username, (string, string, string) img_data){
+            using SysQL::MySqlCommand cmd = new SysQL::MySqlCommand($"Insert into images (img_id, uploader_id, img_str, img_ext) VALUES ('{(username + "_" + img_data.Item2 + "_" + img_data.Item3 + "_" + DateTime.Now)}', {GetID(username)}', '{img_data.Item1}', '{img_data.Item3}')", db.Connection);
+            RunNonQuery(cmd);
+        }
+        public ConcurrentDictionary<string, OneMessenger.Core.ConnectedClient> GetConnectedClients() => this.ConnectedClients;
+    }
 }

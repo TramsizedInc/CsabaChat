@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectedClient.cs" />
     <Compile Include="DataBaseUtils.cs" />
     <Compile Include="IClient.cs" />
     <Compile Include="IDirtyWord.cs" />

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ServiceModel;
 
 namespace OneMessenger.Core
@@ -17,6 +18,12 @@ namespace OneMessenger.Core
 		void SendMessageToAll(string username,string message);
 		[OperationContract]
 		List<string> GetConnectedUsernames(string username);
+
+		[OperationContract]
+		void UploadImage(string username, (string, string, string) img_data);
+
+		[OperationContract]
+		ConcurrentDictionary<string, ConnectedClient> GetConnectedClients();
 
     }
 }

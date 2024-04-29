@@ -1,4 +1,5 @@
 ﻿ using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -15,17 +16,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Win32;
 using OneMessenger.Core;
 using OneMessenger.Server;
+using System.IO;
 
 
-namespace OneMessenger.Client
-{
+namespace OneMessenger.Client{
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
-	{
+	public partial class MainWindow : Window{
 		// ReSharper disable once InconsistentNaming
 		public static IOneMessengerService _server;
 
@@ -41,9 +42,10 @@ namespace OneMessenger.Client
 			TextDisplay.IsReadOnly = true;
 			MessageTextBox.Focus();
 			ConnectedUsers.IsReadOnly = true;
+			BtnUpload.IsEnabled = false;
 		}
 		public void TakeMessage(string username,string message){
-			message = _server.ConnectedClients[username].Value.NeedsCensoring?this.CensorDirtyWords(message) : message;
+			message = _server.GetConnectedClients()[username].NeedsCensoring?this.CensorDirtyWords(message) : message;
 			TextDisplay.Text += $"{username} : { message} \n";
 		}
 		private void BtnSend_Click(object sender, RoutedEventArgs e){
@@ -53,8 +55,7 @@ namespace OneMessenger.Client
 				MessageTextBox.Text = "";
 			}
 		}
-		private void btnlogin_Click(object sender, RoutedEventArgs e)
-		{
+		private void btnlogin_Click(object sender, RoutedEventArgs e){
 			var value = _server.Login(UserNameTextBox.Text, UserPassTextBox.Text);
 			if (value==1){
 				MessageBox.Show("You are already logged in");
@@ -65,14 +66,21 @@ namespace OneMessenger.Client
 				UserNameTextBox.IsEnabled = false;
 				btnlogin.IsEnabled = false;
 				_server.GetConnectedUsernames(UserNameTextBox.Text).ForEach(x => ConnectedUsers.Text += x + "\n");
-			}
+                BtnUpload.IsEnabled = false;
+            }
         }
-		private string CensorDirtyWords(string message){
+		public string CensorDirtyWords(string message){
 			var dw = new DirtyWord();
-			// return dw.GetSafeWord(message);
-			message.Split(" ").ForEach(x=> dw.SetSafeWord(x));
+			message.Split(' ').ToList().ForEach(x=> dw.GetSafeWord(x));
 			return message;
 		}
+		private (string, string, string) GetFileBin(){
+			var openfiledialog = new OpenFileDialog();
+            openfiledialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.svg|All files (*.*)|*.*";
+			if (!openfiledialog.ShowDialog() == true)
+				throw new Exception("Fuck it, you canceled");
+			return (Convert.ToBase64String(File.ReadAllBytes(openfiledialog.FileName)),openfiledialog.SafeFileName.Split('.').First(), openfiledialog.SafeFileName.Split('.').Last());
+        }
 
         private void btnregister_Click(object sender, RoutedEventArgs e)
         {
@@ -91,9 +99,11 @@ namespace OneMessenger.Client
                 btnlogin.IsEnabled = false;
 				btnregister.IsEnabled = false;
                 UserPassTextBox.IsEnabled = false;
-
+                BtnUpload.IsEnabled = false;
                 _server.GetConnectedUsernames(UserNameTextBox.Text).ForEach(x => ConnectedUsers.Text += x + "\n");
             }
         }
+
+        private void BtnUpload_Click(object sender, RoutedEventArgs e) => _server.UploadImage(UserNameTextBox.Text, this.GetFileBin());
     }
 }

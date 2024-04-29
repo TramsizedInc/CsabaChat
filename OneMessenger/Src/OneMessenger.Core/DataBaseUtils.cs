@@ -77,6 +77,11 @@ namespace OneMessenger.Core
             cmd.Connection.Close();
             return datas;
         }
+        public static void RunNonQuery(SysQL::MySqlCommand cmd) {
+            cmd.Connection.Open();
+            cmd.ExecuteNonQuery();
+            cmd.Connection.Close();
+        }
     }
 }
 

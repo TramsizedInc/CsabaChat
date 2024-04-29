@@ -40,7 +40,7 @@ CREATE TABLE `friends` (
 --
 
 CREATE TABLE `messages` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(20) NOT NULL AUTO_INCREMENT,
   `sender_id` int(20) NOT NULL,
   `reciever` varchar(20) NOT NULL,
   `message` varchar(2000) COLLATE utf8_hungarian_ci NOT NULL,
@@ -70,9 +70,25 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 
 CREATE TABLE `servers` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
   `user_id` int(20) NOT NULL,
   `server_address` VARCHAR(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
+
+
+CREATE TABLE `images` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `uploader_id` int(20) NOT NULL,
+  `img_id` varchar(70) COLLATE utf8_hungarian_ci NOT NULL,
+  `img_str` varchar(2000) COLLATE utf8_hungarian_ci NOT NULL,
+  `img_name` varchar(20) COLLATE utf8_hungarian_ci NOT NULL,
+  `img_ext` varchar(4) COLLATE utf8_hungarian_ci NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
+
 --
 -- Indexek a kiírt táblákhoz
 --
@@ -83,7 +99,7 @@ CREATE TABLE `servers` (
 ALTER TABLE `friends`
   ADD PRIMARY KEY (`user_id`);
 ALTER TABLE `servers`
-  ADD PRIMARY KEY (`user_id`);
+  ADD PRIMARY KEY (`id`);
 --
 -- A tábla indexei `messages`
 --
@@ -100,19 +116,21 @@ ALTER TABLE `users`
 --
 -- A kiírt táblák AUTO_INCREMENT értéke
 --
-
+ALTER TABLE `images`
+  ADD PRIMARY KEY (`id`);
 --
 -- AUTO_INCREMENT a táblához `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
+ALTER TABLE `images`
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
 --
 -- Megkötések a kiírt táblákhoz
 --
@@ -123,6 +141,10 @@ ALTER TABLE `users`
 ALTER TABLE `friends`
   ADD CONSTRAINT `friends_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
+ALTER TABLE `servers`
+  ADD CONSTRAINT `servers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `images`
+  ADD CONSTRAINT `images_ibfk_1` FOREIGN KEY (`uploader_id`) REFERENCES `users` (`id`);
 --
 -- Megkötések a táblához `messages`
 --
