@@ -72,7 +72,8 @@ CREATE TABLE `users` (
 CREATE TABLE `servers` (
   `id` int(20) NOT NULL AUTO_INCREMENT,
   `user_id` int(20) NOT NULL,
-  `server_address` VARCHAR(20) DEFAULT NULL
+  `server_address` VARCHAR(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 
 
@@ -98,8 +99,6 @@ CREATE TABLE `images` (
 --
 ALTER TABLE `friends`
   ADD PRIMARY KEY (`user_id`);
-ALTER TABLE `servers`
-  ADD PRIMARY KEY (`id`);
 --
 -- A tábla indexei `messages`
 --
@@ -116,8 +115,6 @@ ALTER TABLE `users`
 --
 -- A kiírt táblák AUTO_INCREMENT értéke
 --
-ALTER TABLE `images`
-  ADD PRIMARY KEY (`id`);
 --
 -- AUTO_INCREMENT a táblához `messages`
 --
