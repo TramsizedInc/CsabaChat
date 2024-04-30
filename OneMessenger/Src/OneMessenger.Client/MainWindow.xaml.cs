@@ -20,6 +20,8 @@ using Microsoft.Win32;
 using OneMessenger.Core;
 using OneMessenger.Server;
 using System.IO;
+using static OneMessenger.Core.DataBaseUtils;
+using SysQL = MySqlConnector;
 
 
 namespace OneMessenger.Client{
@@ -29,8 +31,8 @@ namespace OneMessenger.Client{
 	public partial class MainWindow : Window{
 		// ReSharper disable once InconsistentNaming
 		public static IOneMessengerService _server;
-
-		public MainWindow(){
+        public DataBaseUtils.ConnectSQL db = new DataBaseUtils.ConnectSQL("localhost", "root", "", "csaba");
+        public MainWindow(){
 			InitializeComponent();
 			var channelFactory = new DuplexChannelFactory<IOneMessengerService>(new ClientCallback(), "OneMessengerServiceEndpoint");
 			try{
@@ -56,7 +58,14 @@ namespace OneMessenger.Client{
 			}
 		}
 		private void btnlogin_Click(object sender, RoutedEventArgs e){
-			var value = _server.Login(UserNameTextBox.Text, UserPassTextBox.Text);
+			var value = 0;
+			try
+			{
+				if (_server == null)
+					throw new Exception("server was nul");
+				value = _server.Login(UserNameTextBox.Text, UserPassTextBox.Text);
+			}
+			catch(Exception ext) { MessageBox.Show(ext.Message, ext.Source); }
 			if (value==1){
 				MessageBox.Show("You are already logged in");
 			}
@@ -99,11 +108,26 @@ namespace OneMessenger.Client{
                 btnlogin.IsEnabled = false;
 				btnregister.IsEnabled = false;
                 UserPassTextBox.IsEnabled = false;
-                BtnUpload.IsEnabled = false;
+                BtnUpload.IsEnabled = true;
                 _server.GetConnectedUsernames(UserNameTextBox.Text).ForEach(x => ConnectedUsers.Text += x + "\n");
+				this.UploadImage(UserNameTextBox.Text, this.GetFileBin());
+                using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT images.img_str FROM images WHERE images.uploader_id={this.GetID(UserNameTextBox.Text)}", db.Connection);
+				var img = GetData(command)[0];
             }
         }
 
         private void BtnUpload_Click(object sender, RoutedEventArgs e) => _server.UploadImage(UserNameTextBox.Text, this.GetFileBin());
+
+        private void UploadImage(string username, (string, string, string) img_data)
+        {
+            using SysQL::MySqlCommand cmd = new SysQL::MySqlCommand($"Insert into images (img_id, uploader_id, img_str, img_ext) VALUES ('{(username + "_" + img_data.Item2 + "_" + img_data.Item3 + "_" + DateTime.Now.ToString().Replace(' ', '_'))}', {this.GetID(username)}, '{img_data.Item1}', '{img_data.Item3}')", db.Connection);
+            RunNonQuery(cmd);
+        }
+        private string GetID(string username)
+        {
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"SELECT users.id FROM users WHERE users.username='{username}'", db.Connection);
+            var user = GetData(command);
+            return user.First().ToString();
+        }
     }
 }
