@@ -104,16 +104,16 @@ namespace OneMessenger.Server{
                 recivers.Add(client.Key);
             }
             string reciver = string.Join(", ",recivers);
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{GetThisExactDateTime()}')", db.Connection);
             RunNonQuery(command);
         }
         private void MessageLogger(string message, string sender, List<string> receivers){
             string reciver = string.Join(", ", receivers);
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{this.GetThisExactDateTime()}')", db.Connection);
             RunNonQuery(command);
         }
         private void MessageLogger(string message, string sender, string reciver){
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}, {GetID(sender)}', '{reciver}', '{DateTime.Now}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{this.GetThisExactDateTime()}')", db.Connection);
             RunNonQuery(command);
         }
         private string GetID(string username){
@@ -145,5 +145,7 @@ namespace OneMessenger.Server{
             RunNonQuery(cmd);
         }
         public ConcurrentDictionary<string, OneMessenger.Core.ConnectedClient> GetConnectedClients() => this.ConnectedClients;
+        private string GetThisExactDateTime() => DateTime.Now.Year +"-"+ DateTime.Now.Month +"-"+ this.GetThisExactDay() +" "+ DateTime.Now.Hour +":"+ DateTime.Now.Minute + ":" + DateTime.Now.Second;
+        private string GetThisExactDay() => DateTime.Now.Day.ToString().Length == 2 ? DateTime.Now.Day.ToString() : "0" + DateTime.Now.Day.ToString();
     }
 }
