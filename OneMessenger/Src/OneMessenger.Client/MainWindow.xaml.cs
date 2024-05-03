@@ -47,7 +47,10 @@ namespace OneMessenger.Client{
 			BtnUpload.IsEnabled = false;
 		}
 		public void TakeMessage(string username,string message){
-			message = _server.GetConnectedClients()[username].NeedsCensoring?this.CensorDirtyWords(message) : message;
+			//message = _server.GetConnectedClients()[username].NeedsCensoring?this.CensorDirtyWords(message) : message;
+			var thisclient = _server.GetConnectedClients().Where(x => x.Key == username).First().Value;
+			var censurainfo = thisclient.NeedsCensoring;
+			message = censurainfo ? this.CensorDirtyWords(message) : message;
 			TextDisplay.Text += $"{username} : { message} \n";
 		}
 		private void BtnSend_Click(object sender, RoutedEventArgs e){

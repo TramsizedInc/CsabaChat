@@ -54,6 +54,7 @@ namespace OneMessenger.Server{
             newClient.Connection = establishedUserConnection;
             newClient.Username = username;
             newClient.NeedsCensoring = false; ///
+            this.SetCensura(this.GetID(username), newClient.NeedsCensoring);
             ConnectedClients.TryAdd(username, newClient);
             return 0;
         }
@@ -94,7 +95,7 @@ namespace OneMessenger.Server{
             RunNonQuery(command);
         }
         private void SetCensura(string userid, bool switcheroo){
-            using SysQL::MySqlCommand cmd = new SysQL::MySqlCommand($"UPDATE users SET censured = '{Convert.ToInt32(switcheroo).ToString().Last()}' WHERE users.id = '{userid}';");
+            using SysQL::MySqlCommand cmd = new SysQL::MySqlCommand($"UPDATE users SET censured = '{(switcheroo ? 1 : 0)}' WHERE users.id = {userid};", db.Connection);
             RunNonQuery(cmd);
         }
         private void MessageLogger(string message, string sender){
@@ -104,16 +105,16 @@ namespace OneMessenger.Server{
                 recivers.Add(client.Key);
             }
             string reciver = string.Join(", ",recivers);
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{GetThisExactDateTime()}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciever, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{GetThisExactDateTime()}')", db.Connection);
             RunNonQuery(command);
         }
         private void MessageLogger(string message, string sender, List<string> receivers){
             string reciver = string.Join(", ", receivers);
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{this.GetThisExactDateTime()}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciever, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{this.GetThisExactDateTime()}')", db.Connection);
             RunNonQuery(command);
         }
         private void MessageLogger(string message, string sender, string reciver){
-            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciver, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{this.GetThisExactDateTime()}')", db.Connection);
+            using SysQL::MySqlCommand command = new SysQL::MySqlCommand($"Insert into messages (message, sender_id, reciever, created_at) VALUES ('{message}', {GetID(sender)}, '{reciver}', '{this.GetThisExactDateTime()}')", db.Connection);
             RunNonQuery(command);
         }
         private string GetID(string username){
